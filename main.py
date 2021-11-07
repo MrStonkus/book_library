@@ -1,5 +1,4 @@
 import copy
-from itertools import groupby
 
 # book class
 # ISBN contains simple digits without dashes
@@ -13,7 +12,7 @@ class Book:
         self.state = state_tx
 
     def to_string(self):
-        return f'{self.isbn} {self.title} {self.author} {self.year} {self.state}'
+        return f'ISBN:{self.isbn} title:{self.title} author:{self.author} year:{self.year} state:{self.state}'
 
 
 # distributor class
@@ -64,11 +63,14 @@ class Library:
             console.print(text)
 
     def list_books(self):
+        self.available_books = self.sort_by_date(self.available_books)
+        self.borrowed_books = self.sort_by_date(self.borrowed_books)
         console.list_books(self.available_books, "available")
         console.list_books(self.borrowed_books, "borrowed")
 
     def borrow_book(self):
-        console.list_books(library.available_books, 'available')
+        self.available_books = self.sort_by_date(self.available_books)
+        console.list_books(self.available_books, 'available')
         book_nr = console.get_customer_input('borrow')
         if book_nr <= 0 or book_nr > len(library.available_books):
             text = f'Incorrect number. It must be from 1 to {len(library.available_books)} !'
@@ -85,7 +87,7 @@ class Library:
 
     def return_book(self):
         console.list_books(library.borrowed_books, 'borrowed')
-        book_nr = console.get_customer_input('borrow')
+        book_nr = console.get_customer_input('return')
         if book_nr <= 0 or book_nr > len(library.borrowed_books):
             text = f'Incorrect number. It must be from 1 to {len(library.borrowed_books)} !'
             console.print(text)
@@ -106,20 +108,15 @@ class Library:
         res_title = list(filter(lambda x: x.title == search_input, library_books))
         res_author = list(filter(lambda x: x.author == search_input, library_books))
         results_arr = res_title + res_author
-
-
-        # sort by book date
-        # TODO sort by book date
-
-        sorted_arr = sorted(results_arr, key=lambda book_copy: book_copy.year)
-
-
+        sorted_arr = self.sort_by_date(results_arr)
         if sorted_arr:
             console.list_books(sorted_arr, 'search_results')
         else:
             text = 'Sorry, no results by searching criteria.'
             console.print(text)
-
+    # sort by book date
+    def sort_by_date(self, books):
+        return sorted(books, key=lambda book_copy: book_copy.year)
 
 # console class (main)
 class Console:
@@ -175,10 +172,47 @@ class Console:
 
     def get_new_book_inputs(self):
         print('*all inputs are required!')
-        isbn_nr = input("Enter book's ISBN number (only numbers): ")
-        title_tx = input("Enter book's title: ")
-        author_tx = input("Enter book's author: ")
-        year_nr = input("Enter year of publication (only numbers): ")
+
+        while True:
+            try:
+                isbn_nr = int(input("Enter book's ISBN number (only numbers): "))
+            except ValueError:
+                print("This is an unaccepted response, enter a valid value")
+                continue
+            else:
+                break
+
+        while True:
+            try:
+                title_tx = input("Enter book's title: ")
+                if not title_tx:
+                    raise ValueError('Empty string!')
+            except ValueError as e:
+                print(e)
+                continue
+            else:
+                break
+
+        while True:
+            try:
+                author_tx = input("Enter book's author: ")
+                if not author_tx:
+                    raise ValueError('Empty string!')
+            except ValueError as e:
+                print(e)
+                continue
+            else:
+                break
+
+        while True:
+            try:
+                year_nr = int(input("Enter year of publication (only numbers): "))
+            except ValueError:
+                print("This is an unaccepted response, enter a valid value")
+                continue
+            else:
+                break
+
         return isbn_nr, title_tx, author_tx, year_nr
 
     # @book_state could be published, available and borrowed
@@ -219,8 +253,16 @@ class Console:
             print('------ SEACH ------')
             input_nr = input(f'Enter Title or Author of the looking book :')
         else:
-            input_nr = int(input(f'Enter row number of book to {type}: (exm. 1 to {type} first book) :'))
+            while True:
+                try:
+                    input_nr = int(input(f'Enter row number of book to {type}: (exm. 1 to {type} first book) :'))
+                except ValueError:
+                    print("This is an unaccepted response, enter a valid value")
+                    continue
+                else:
+                    break
         return input_nr
+
 
 
 # app start
