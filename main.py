@@ -39,9 +39,6 @@ class Distributor:
     def list_books(self):
         console.list_books(self.books, "published")
 
-    # def get_book(self, nr):
-    #     return self.books[nr - 1]
-
 
 # library class
 class Library:
@@ -70,7 +67,6 @@ class Library:
         console.list_books(self.available_books, "available")
         console.list_books(self.borrowed_books, "borrowed")
 
-
     def borrow_book(self):
         console.list_books(library.available_books, 'available')
         book_nr = console.get_book_number('borrow')
@@ -87,23 +83,21 @@ class Library:
             text = f'The book {borrowed_book.to_string()} has been borrowed'
             console.print(text)
 
+    def return_book(self):
+        console.list_books(library.borrowed_books, 'borrowed')
+        book_nr = console.get_book_number('borrow')
+        if book_nr <= 0 or book_nr > len(library.borrowed_books):
+            text = f'Incorrect number. It must be from 1 to {len(library.borrowed_books)} !'
+            console.print(text)
+        else:
+            # get book by number and remove from borrowed_books array
+            returning_book = library.borrowed_books.pop(book_nr - 1)
+            returning_book.state = 'available'
+            # set book to available_books array
+            self.available_books.append(returning_book)
 
-
-        # def borrow_book(self, book_nr):
-    #     if book_nr > 0 or book_nr <= len(library.books):
-    #         try:
-    #             library_book = library.get_book(book_nr)
-    #         except IndexError:
-    #             print('Invalid number of book, try again please!')
-    #         else:
-    #             library_book.state = 'borrowed'
-    #             library.borrowed_books.append(library_book)
-    #             print(f'Book {library_book.to_string()} borrowed.')
-    #     else:
-    #         print(f'Invalid number. It must be from 1 to {len(library.books)} !')
-
-    # def return_book(self, book_nr):
-    #     pass
+            text = f'The book {returning_book.to_string()} has been returned to library'
+            console.print(text)
 
 
 # console class (main)
@@ -118,7 +112,7 @@ class Console:
                 1. Create new book (publish)
                 2. List published books
                 3. Buy book
-                4. List library's books
+                4. List all library's books
                 5. Borrow book
                 6. Return book
                 7. Search book
@@ -146,15 +140,9 @@ class Console:
                     case 5:
                         # Borrow book
                         library.borrow_book()
-                        # library.list_books()
-                        # book_nr = int(input('Enter row number of book to borrow: (exm. 1 to borrow first book) :'))
-                        # library.borrow_book(book_nr)
                     case 6:
                         # Return book
-                        pass
-                        # library.list_books(book_list='borrowed')
-                        # book_nr = int(input('Enter row number of book to return: (exm. 1 to return first book) :'))
-                        # library.return_book(book_nr)
+                        library.return_book()
                     case 7:
                         # Search book
                         print('7')
@@ -175,7 +163,7 @@ class Console:
     # @book_state could be published, available and borrowed
     def list_books(self, books, book_state):
         if not len(books):
-            print('There are no books...')
+            print(f'There are no {book_state} books...')
         else:
             nr = 1
             if book_state == 'published':
