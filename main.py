@@ -1,5 +1,5 @@
 import copy
-
+from itertools import groupby
 
 # book class
 # ISBN contains simple digits without dashes
@@ -107,16 +107,15 @@ class Library:
         res_author = list(filter(lambda x: x.author == search_input, library_books))
         results_arr = res_title + res_author
 
-        # remove dublicates
-        # TODO remove dublicates
 
         # sort by book date
         # TODO sort by book date
 
+        sorted_arr = sorted(results_arr, key=lambda book_copy: book_copy.year)
 
 
-        if results_arr:
-            console.list_books(results_arr, 'search_results')
+        if sorted_arr:
+            console.list_books(sorted_arr, 'search_results')
         else:
             text = 'Sorry, no results by searching criteria.'
             console.print(text)
@@ -231,9 +230,9 @@ if __name__ == '__main__':
     library = Library()
 
     # load default books
-    distributor.create_book(100, 'title1', 'author1', 2001)
-    distributor.create_book(101, 'title2', 'author2', 2002)
-    distributor.create_book(101, 'title3', 'author3', 2003)
+    distributor.create_book(100, 'title1', 'author1', 2010)
+    distributor.create_book(101, 'title1', 'author1', 2002)
+    distributor.create_book(102, 'title1', 'author1', 2020)
     distributor.create_book(103, 'title4', 'author4', 2004)
 
     console.print_menu()
