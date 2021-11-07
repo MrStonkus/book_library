@@ -108,9 +108,10 @@ class Library:
         results_arr = res_title + res_author
 
         # remove dublicates
-
+        # TODO remove dublicates
 
         # sort by book date
+        # TODO sort by book date
 
 
 
