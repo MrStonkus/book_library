@@ -1,23 +1,22 @@
+import copy
+
+
+# book class
 # ISBN contains simple digits without dashes
+# @state could be published, available and borrowed
 class Book:
-    def __init__(self, isbn_nr, title_tx, author_tx, year_int):
+    def __init__(self, isbn_nr, title_tx, author_tx, year_int, state_tx='published'):
         self.isbn = isbn_nr
         self.title = title_tx
         self.author = author_tx
         self.year = year_int
+        self.state = state_tx
 
     def to_string(self):
-        return f'{self.isbn} {self.title} {self.author} {self.year}'
+        return f'{self.isbn} {self.title} {self.author} {self.year} {self.state}'
 
-# state could be: in_library and borrowed.  Depending of the location
-class BookCopy:
-    def __init__(self, original_book):
-        self.book = original_book
-        self.state = 'in_library'
 
-    def to_string(self):
-        return f'{self.book.isbn} {self.book.title} {self.book.author} {self.book.year}  {self.state}'
-
+# distributor class
 # Distributor has new publicised books available for library
 class Distributor:
     def __init__(self):
@@ -25,73 +24,191 @@ class Distributor:
 
     def create_book(self, isbn_nr, title_tx, author_tx, year_int):
         new_book = Book(isbn_nr, title_tx, author_tx, year_int)
-        if self.check_for_dublicate(new_book.isbn):
-            print("The same ISBN number is in the list!")
-        else:
-            self.books.append(new_book)
 
-    def list_books(self):
-        # isbn_arr = map()
-        list_books_in_console(self.books)
-
-    def check_for_dublicate(self, isbn_nr):
+        # Chek for dublicates
         # get all isbn numbers in list
         isbn_list = []
         for book in self.books:
             isbn_list.append(book.isbn)
         # check list for the same isbn
-        if isbn_nr in isbn_list:
-            return True
+        if new_book.isbn in isbn_list:
+            print("The same ISBN number is in the list!")
         else:
-            return False
-
-    def get_book(self, nr):
-        return self.books[nr - 1]
-
-# Create library class
-
-class Library:
-    def __init__(self):
-        self.books = []
-
-    def get_book(self, nr):
-        return self.books[nr - 1]
-
-    def buy_book(self, book_nr):
-        if book_nr > 0 or book_nr <= len(distributor.books):
-            try:
-                original_book = distributor.get_book(book_nr)
-            except IndexError:
-                print('Invalid number of book, try again please!')
-            else:
-                book_copy = BookCopy(original_book)
-                self.books.append(book_copy)
-                print(f'Bought book {book_copy.to_string()}')
-        else:
-            print(f'Invalid number. It must be from 1 to {len(distributor.books)} !')
-
+            self.books.append(new_book)
 
     def list_books(self):
-        list_books_in_console(self.books)
+        console.list_books(self.books, "published")
 
-    def borrow_book(self, book_nr):
-        if book_nr > 0 or book_nr <= len(library.books):
-            try:
-                library_book = library.get_book(book_nr)
-            except IndexError:
-                print('Invalid number of book, try again please!')
-            else:
-                library_book.state = 'borrowed'
-                print(f'Book {library_book.to_string()} borrowed.')
+    # def get_book(self, nr):
+    #     return self.books[nr - 1]
+
+
+# library class
+class Library:
+    def __init__(self):
+        self.available_books = []
+        self.borrowed_books = []
+
+    def buy_book(self):
+        console.list_books(distributor.books, 'published')
+        book_nr = console.get_book_number('buy')
+        if book_nr <= 0 or book_nr > len(distributor.books):
+            text = f'Incorrect number. It must be from 1 to {len(distributor.books)} !'
+            console.print(text)
         else:
-            print(f'Invalid number. It must be from 1 to {len(library.books)} !')
+            # get original book from distributor
+            original_book = distributor.books[book_nr -1]
+            # make copy
+            book_copy = copy.deepcopy(original_book)
+            book_copy.state = 'available'
+            self.available_books.append(book_copy)
 
-    # return_book()
-    # search_book(author, title)
+            text = f'Bought book {book_copy.to_string()}'
+            console.print(text)
+
+    def list_books(self):
+        console.list_books(self.available_books, "available")
+        console.list_books(self.borrowed_books, "borrowed")
 
 
-# app loop
+    def borrow_book(self):
+        console.list_books(library.available_books, 'available')
+        book_nr = console.get_book_number('borrow')
+        if book_nr <= 0 or book_nr > len(library.available_books):
+            text = f'Incorrect number. It must be from 1 to {len(library.available_books)} !'
+            console.print(text)
+        else:
+            # get book by number and remove from available_books array
+            borrowed_book = library.available_books.pop(book_nr - 1)
+            borrowed_book.state = 'borrowed'
+            # set book to borrowed array
+            self.borrowed_books.append(borrowed_book)
+
+            text = f'The book {borrowed_book.to_string()} has been borrowed'
+            console.print(text)
+
+
+
+        # def borrow_book(self, book_nr):
+    #     if book_nr > 0 or book_nr <= len(library.books):
+    #         try:
+    #             library_book = library.get_book(book_nr)
+    #         except IndexError:
+    #             print('Invalid number of book, try again please!')
+    #         else:
+    #             library_book.state = 'borrowed'
+    #             library.borrowed_books.append(library_book)
+    #             print(f'Book {library_book.to_string()} borrowed.')
+    #     else:
+    #         print(f'Invalid number. It must be from 1 to {len(library.books)} !')
+
+    # def return_book(self, book_nr):
+    #     pass
+
+
+# console class (main)
+class Console:
+    def print_menu(self):
+
+        exit_out = False
+        while not exit_out:
+            print('''
+                ------ LIBRARY MENU ------
+
+                1. Create new book (publish)
+                2. List published books
+                3. Buy book
+                4. List library's books
+                5. Borrow book
+                6. Return book
+                7. Search book
+                8. Quit
+                ''')
+            try:
+                menu_nr = int(input('Enter menu number (1-8): '))
+            except ValueError:
+                print('Choose from 1 to 8!')
+            else:
+                match menu_nr:
+                    case 1:
+                        # Create new book(publish)
+                        isbn, title, author, year = self.get_new_book_inputs()
+                        distributor.create_book(isbn, title, author, year)
+                    case 2:
+                        # List published books
+                        distributor.list_books()
+                    case 3:
+                        # Buy book
+                        library.buy_book()
+                    case 4:
+                        # List all library's books
+                        library.list_books()
+                    case 5:
+                        # Borrow book
+                        library.borrow_book()
+                        # library.list_books()
+                        # book_nr = int(input('Enter row number of book to borrow: (exm. 1 to borrow first book) :'))
+                        # library.borrow_book(book_nr)
+                    case 6:
+                        # Return book
+                        pass
+                        # library.list_books(book_list='borrowed')
+                        # book_nr = int(input('Enter row number of book to return: (exm. 1 to return first book) :'))
+                        # library.return_book(book_nr)
+                    case 7:
+                        # Search book
+                        print('7')
+                    case 8:
+                        # Quit
+                        exit_out = True
+                    case _:
+                        print('Choose from 1 to 8!')
+
+    def get_new_book_inputs(self):
+        print('*all inputs are required!')
+        isbn_nr = input("Enter book's ISBN number (only numbers): ")
+        title_tx = input("Enter book's title: ")
+        author_tx = input("Enter book's author: ")
+        year_nr = input("Enter year of publication (only numbers): ")
+        return isbn_nr, title_tx, author_tx, year_nr
+
+    # @book_state could be published, available and borrowed
+    def list_books(self, books, book_state):
+        if not len(books):
+            print('There are no books...')
+        else:
+            nr = 1
+            if book_state == 'published':
+                print('------ List of published books to buy ------')
+                for book in books:
+                    print(f'{nr}. {book.to_string()}')
+                    nr += 1
+            elif book_state == 'available':
+                print('------ List available books in Library  ------')
+                for book in books:
+                    print(f'{nr}. {book.to_string()}')
+                    nr += 1
+            elif book_state == 'borrowed':
+                print('------ List borrowed books in Library  ------')
+                for book in books:
+                    print(f'{nr}. {book.to_string()}')
+                    nr += 1
+
+
+    def print(self, text):
+        print(text)
+
+
+    # type can be (buy, borrow and return)
+    def get_book_number(self, type):
+        input_nr = int(input(f'Enter row number of book to {type}: (exm. 1 to {type} first book) :'))
+        return input_nr
+
+
+
+# app start
 if __name__ == '__main__':
+    console = Console()
     distributor = Distributor()
     library = Library()
 
@@ -101,75 +218,4 @@ if __name__ == '__main__':
     distributor.create_book(101, 'title3', 'author3', 2003)
     distributor.create_book(103, 'title4', 'author4', 2004)
 
-
-    # console functions
-
-    def get_new_book_inputs():
-        print('*all inputs are required!')
-        isbn_nr = input("Enter book's ISBN number (only numbers): ")
-        title_tx = input("Enter book's title: ")
-        author_tx = input("Enter book's author: ")
-        year_nr = input("Enter year of publication (only numbers): ")
-        return isbn_nr, title_tx, author_tx, year_nr
-
-
-
-    def list_books_in_console(book_arr):
-        if len(book_arr) > 0:
-            print('------ LIST OF AVAILABLE BOOKS ------')
-            nr = 1
-            for book in book_arr:
-                print(f'{nr}. {book.to_string()}')
-                nr += 1
-        else:
-            print('There no books to list.')
-
-
-    # for x in test_list:
-    #     if x.value == value:
-    #         print("i found it!")
-    #         break
-
-    isQuit = False
-    while not isQuit:
-        print('''
-        ------ LIBRARY MENU ------
-        
-        1. Create new book (publish)
-        2. List of published books
-        3. Buy book
-        4. List books of library
-        5. Borrow book
-        6. Return book
-        7. Search book
-        8. Quit
-        ''')
-        try:
-            menu_nr = int(input('Enter menu number (1-8): '))
-        except ValueError:
-            print('Choose from 1 to 8!')
-        else:
-            match menu_nr:
-                case 1:
-                    isbn, title, author, year = get_new_book_inputs()
-                    distributor.create_book(isbn, title, author, year)
-                case 2:
-                    distributor.list_books()
-                case 3:
-                    distributor.list_books()
-                    book_nr = int(input('Enter row number of book to buy: (exm. 1 to buy first book) :'))
-                    library.buy_book(book_nr)
-                case 4:
-                    library.list_books()
-                case 5:
-                    library.list_books()
-                    book_nr = int(input('Enter row number of book to borrow: (exm. 1 to borrow first book) :'))
-                    library.borrow_book(book_nr)
-                case 6:
-                    print('6')
-                case 7:
-                    print('7')
-                case 8:
-                    isQuit = True
-                case _:
-                    print('Choose from 1 to 8!')
+    console.print_menu()
