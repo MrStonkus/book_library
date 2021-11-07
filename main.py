@@ -48,7 +48,7 @@ class Library:
 
     def buy_book(self):
         console.list_books(distributor.books, 'published')
-        book_nr = console.get_book_number('buy')
+        book_nr = console.get_customer_input('buy')
         if book_nr <= 0 or book_nr > len(distributor.books):
             text = f'Incorrect number. It must be from 1 to {len(distributor.books)} !'
             console.print(text)
@@ -69,7 +69,7 @@ class Library:
 
     def borrow_book(self):
         console.list_books(library.available_books, 'available')
-        book_nr = console.get_book_number('borrow')
+        book_nr = console.get_customer_input('borrow')
         if book_nr <= 0 or book_nr > len(library.available_books):
             text = f'Incorrect number. It must be from 1 to {len(library.available_books)} !'
             console.print(text)
@@ -85,7 +85,7 @@ class Library:
 
     def return_book(self):
         console.list_books(library.borrowed_books, 'borrowed')
-        book_nr = console.get_book_number('borrow')
+        book_nr = console.get_customer_input('borrow')
         if book_nr <= 0 or book_nr > len(library.borrowed_books):
             text = f'Incorrect number. It must be from 1 to {len(library.borrowed_books)} !'
             console.print(text)
@@ -97,6 +97,27 @@ class Library:
             self.available_books.append(returning_book)
 
             text = f'The book {returning_book.to_string()} has been returned to library'
+            console.print(text)
+
+    def search_book(self):
+        search_input = console.get_customer_input('search')
+        # search will be from two arrays, from available and borrowed books
+        library_books = library.available_books + library.borrowed_books
+        res_title = list(filter(lambda x: x.title == search_input, library_books))
+        res_author = list(filter(lambda x: x.author == search_input, library_books))
+        results_arr = res_title + res_author
+
+        # remove dublicates
+
+
+        # sort by book date
+
+
+
+        if results_arr:
+            console.list_books(results_arr, 'search_results')
+        else:
+            text = 'Sorry, no results by searching criteria.'
             console.print(text)
 
 
@@ -145,7 +166,7 @@ class Console:
                         library.return_book()
                     case 7:
                         # Search book
-                        print('7')
+                        library.search_book()
                     case 8:
                         # Quit
                         exit_out = True
@@ -181,6 +202,11 @@ class Console:
                 for book in books:
                     print(f'{nr}. {book.to_string()}')
                     nr += 1
+            elif book_state == 'search_results':
+                print('------ Search results ------')
+                for book in books:
+                    print(f'{nr}. {book.to_string()}')
+                    nr += 1
 
 
     def print(self, text):
@@ -188,10 +214,13 @@ class Console:
 
 
     # type can be (buy, borrow and return)
-    def get_book_number(self, type):
-        input_nr = int(input(f'Enter row number of book to {type}: (exm. 1 to {type} first book) :'))
+    def get_customer_input(self, type):
+        if type == 'search':
+            print('------ SEACH ------')
+            input_nr = input(f'Enter Title or Author of the looking book :')
+        else:
+            input_nr = int(input(f'Enter row number of book to {type}: (exm. 1 to {type} first book) :'))
         return input_nr
-
 
 
 # app start
