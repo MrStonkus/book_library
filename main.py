@@ -6,11 +6,17 @@ class Book:
         self.author = author_tx
         self.year = year_int
 
+    def to_string(self):
+        return f'{self.isbn} {self.title} {self.author} {self.year}'
+
 # state could be: in_library and borrowed.  Depending of the location
 class BookCopy:
     def __init__(self, original_book):
-        self.state = 'in_library'
         self.book = original_book
+        self.state = 'in_library'
+
+    def to_string(self):
+        return f'{self.book.isbn} {self.book.title} {self.book.author} {self.book.year}  {self.state}'
 
 # Distributor has new publicised books available for library
 class Distributor:
@@ -42,23 +48,44 @@ class Distributor:
     def get_book(self, nr):
         return self.books[nr - 1]
 
-
 # Create library class
 
 class Library:
     def __init__(self):
         self.books = []
 
+    def get_book(self, nr):
+        return self.books[nr - 1]
+
     def buy_book(self, book_nr):
-        original_book = distributor.get_book(book_nr)
-        book_copy = BookCopy(original_book)
-        self.books.append(book_copy)
-        print(f'Bought book {book_copy}')
+        if book_nr > 0 or book_nr <= len(distributor.books):
+            try:
+                original_book = distributor.get_book(book_nr)
+            except IndexError:
+                print('Invalid number of book, try again please!')
+            else:
+                book_copy = BookCopy(original_book)
+                self.books.append(book_copy)
+                print(f'Bought book {book_copy.to_string()}')
+        else:
+            print(f'Invalid number. It must be from 1 to {len(distributor.books)} !')
+
 
     def list_books(self):
-        list_books_in_console(self.books, True)
+        list_books_in_console(self.books)
 
-    # borrow_book()
+    def borrow_book(self, book_nr):
+        if book_nr > 0 or book_nr <= len(library.books):
+            try:
+                library_book = library.get_book(book_nr)
+            except IndexError:
+                print('Invalid number of book, try again please!')
+            else:
+                library_book.state = 'borrowed'
+                print(f'Book {library_book.to_string()} borrowed.')
+        else:
+            print(f'Invalid number. It must be from 1 to {len(library.books)} !')
+
     # return_book()
     # search_book(author, title)
 
@@ -87,19 +114,13 @@ if __name__ == '__main__':
 
 
 
-    def list_books_in_console(book_arr, copy=False):
+    def list_books_in_console(book_arr):
         if len(book_arr) > 0:
             print('------ LIST OF AVAILABLE BOOKS ------')
             nr = 1
-            if not copy:
-                for book in book_arr:
-                    print(f'{nr}. {book.isbn} {book.title} {book.author} {book.year}')
-                    nr += 1
-
-            else:
-                for book in book_arr:
-                    print(f'{nr}. {book.book.isbn} {book.book.title} {book.book.author} {book.book.year}')
-                    nr += 1
+            for book in book_arr:
+                print(f'{nr}. {book.to_string()}')
+                nr += 1
         else:
             print('There no books to list.')
 
@@ -138,11 +159,12 @@ if __name__ == '__main__':
                     distributor.list_books()
                     book_nr = int(input('Enter row number of book to buy: (exm. 1 to buy first book) :'))
                     library.buy_book(book_nr)
-
                 case 4:
                     library.list_books()
                 case 5:
-                    print('5')
+                    library.list_books()
+                    book_nr = int(input('Enter row number of book to borrow: (exm. 1 to borrow first book) :'))
+                    library.borrow_book(book_nr)
                 case 6:
                     print('6')
                 case 7:
