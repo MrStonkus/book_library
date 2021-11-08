@@ -8,6 +8,7 @@ class Console:
 
         exit_out = False
         while not exit_out:
+
             print('''
                 ------ LIBRARY MENU ------
 

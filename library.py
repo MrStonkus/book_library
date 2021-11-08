@@ -16,7 +16,6 @@ class Library:
         return book_copy
 
     def get_all_books(self):
-        # TODO make sorting at the update list
         arr1 = self.available_books
         arr2 = self.borrowed_books
         all_books = arr1 + arr2
