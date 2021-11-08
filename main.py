@@ -1,122 +1,6 @@
-import copy
+from distributor import *
+from library import *
 
-# book class
-# ISBN contains simple digits without dashes
-# @state could be published, available and borrowed
-class Book:
-    def __init__(self, isbn_nr, title_tx, author_tx, year_int, state_tx='published'):
-        self.isbn = isbn_nr
-        self.title = title_tx
-        self.author = author_tx
-        self.year = year_int
-        self.state = state_tx
-
-    def to_string(self):
-        return f'ISBN:{self.isbn} title:{self.title} author:{self.author} year:{self.year} state:{self.state}'
-
-
-# distributor class
-# Distributor has new publicised books available for library
-class Distributor:
-    def __init__(self):
-        self.books = []
-
-    def create_book(self, isbn_nr, title_tx, author_tx, year_int):
-        new_book = Book(isbn_nr, title_tx, author_tx, year_int)
-
-        # Chek for dublicates
-        # get all isbn numbers in list
-        isbn_list = []
-        for book in self.books:
-            isbn_list.append(book.isbn)
-        # check list for the same isbn
-        if new_book.isbn in isbn_list:
-            print("The same ISBN number is in the list!")
-        else:
-            self.books.append(new_book)
-
-    def list_books(self):
-        console.list_books(self.books, "published")
-
-
-# library class
-class Library:
-    def __init__(self):
-        self.available_books = []
-        self.borrowed_books = []
-
-    def buy_book(self):
-        console.list_books(distributor.books, 'published')
-        book_nr = console.get_customer_input('buy')
-        if book_nr <= 0 or book_nr > len(distributor.books):
-            text = f'Incorrect number. It must be from 1 to {len(distributor.books)} !'
-            console.print(text)
-        else:
-            # get original book from distributor
-            original_book = distributor.books[book_nr -1]
-            # make copy
-            book_copy = copy.deepcopy(original_book)
-            book_copy.state = 'available'
-            self.available_books.append(book_copy)
-
-            text = f'Bought book {book_copy.to_string()}'
-            console.print(text)
-
-    def list_books(self):
-        self.available_books = self.sort_by_date(self.available_books)
-        self.borrowed_books = self.sort_by_date(self.borrowed_books)
-        console.list_books(self.available_books, "available")
-        console.list_books(self.borrowed_books, "borrowed")
-
-    def borrow_book(self):
-        self.available_books = self.sort_by_date(self.available_books)
-        console.list_books(self.available_books, 'available')
-        book_nr = console.get_customer_input('borrow')
-        if book_nr <= 0 or book_nr > len(library.available_books):
-            text = f'Incorrect number. It must be from 1 to {len(library.available_books)} !'
-            console.print(text)
-        else:
-            # get book by number and remove from available_books array
-            borrowed_book = library.available_books.pop(book_nr - 1)
-            borrowed_book.state = 'borrowed'
-            # set book to borrowed array
-            self.borrowed_books.append(borrowed_book)
-
-            text = f'The book {borrowed_book.to_string()} has been borrowed'
-            console.print(text)
-
-    def return_book(self):
-        console.list_books(library.borrowed_books, 'borrowed')
-        book_nr = console.get_customer_input('return')
-        if book_nr <= 0 or book_nr > len(library.borrowed_books):
-            text = f'Incorrect number. It must be from 1 to {len(library.borrowed_books)} !'
-            console.print(text)
-        else:
-            # get book by number and remove from borrowed_books array
-            returning_book = library.borrowed_books.pop(book_nr - 1)
-            returning_book.state = 'available'
-            # set book to available_books array
-            self.available_books.append(returning_book)
-
-            text = f'The book {returning_book.to_string()} has been returned to library'
-            console.print(text)
-
-    def search_book(self):
-        search_input = console.get_customer_input('search')
-        # search will be from two arrays, from available and borrowed books
-        library_books = library.available_books + library.borrowed_books
-        res_title = list(filter(lambda x: x.title == search_input, library_books))
-        res_author = list(filter(lambda x: x.author == search_input, library_books))
-        results_arr = res_title + res_author
-        sorted_arr = self.sort_by_date(results_arr)
-        if sorted_arr:
-            console.list_books(sorted_arr, 'search_results')
-        else:
-            text = 'Sorry, no results by searching criteria.'
-            console.print(text)
-    # sort by book date
-    def sort_by_date(self, books):
-        return sorted(books, key=lambda book_copy: book_copy.year)
 
 # console class (main)
 class Console:
@@ -128,9 +12,9 @@ class Console:
                 ------ LIBRARY MENU ------
 
                 1. Create new book (publish)
-                2. List published books
-                3. Buy book
-                4. List all library's books
+                2. Distributor's books (published)
+                3. Buy book from distributor
+                4. All library's books (available and borrowed)
                 5. Borrow book
                 6. Return book
                 7. Search book
@@ -145,25 +29,60 @@ class Console:
                     case 1:
                         # Create new book(publish)
                         isbn, title, author, year = self.get_new_book_inputs()
-                        distributor.create_book(isbn, title, author, year)
+                        new_book = distributor.create_book(isbn, title, author, year)
+                        if new_book:
+                            print(f'Success, new book -> {new_book.to_string()} was created.')
+                        else:
+                            print("Book was not created, check ISBN number!")
                     case 2:
                         # List published books
-                        distributor.list_books()
+                        books = distributor.get_books()
+                        self.list_books(books, "published")
                     case 3:
                         # Buy book
-                        library.buy_book()
+                        books = distributor.get_books()
+                        self.list_books(books, "published")
+                        book_nr = self.get_customer_input('buy')
+                        if book_nr <= 0 or book_nr > len(distributor.books):
+                            text = f'Incorrect number. It must be from 1 to {len(distributor.books)} !'
+                            console.print(text)
+                        else:
+                            # get original book from distributor
+                            original_book = distributor.books[book_nr - 1]
+                            book_copy = library.buy_book(original_book)
+                            print(f'Success, purchased book -> {book_copy.to_string()}')
                     case 4:
                         # List all library's books
-                        library.list_books()
+                        books = library.get_all_books()
+                        self.list_books(books, "library")
                     case 5:
                         # Borrow book
-                        library.borrow_book()
+                        available_books = library.get_available_books()
+                        self.list_books(available_books, "available")
+                        book_nr = self.get_customer_input('borrow')
+                        if book_nr <= 0 or book_nr > len(available_books):
+                            print(f'Incorrect number. It must be from 1 to {len(available_books)} !')
+                        else:
+                            borrowed_book = library.borrow_book(book_nr, available_books)
+                            print(f'Success, borrowed book -> {borrowed_book.to_string()}')
                     case 6:
                         # Return book
-                        library.return_book()
+                        borrowed_books = library.get_borrowed_books()
+                        self.list_books(borrowed_books, "borrowed")
+                        book_nr = self.get_customer_input('return')
+                        if book_nr <= 0 or book_nr > len(borrowed_books):
+                            print(f'Incorrect number. It must be from 1 to {len(borrowed_books)} !')
+                        else:
+                            returned_book = library.return_book(book_nr, borrowed_books)
+                            print(f'Success, returned book -> {returned_book.to_string()}')
                     case 7:
                         # Search book
-                        library.search_book()
+                        search_text = self.get_customer_input('search')
+                        results = library.search_book(search_text)
+                        if results:
+                            self.list_books(results, 'search_results')
+                        else:
+                            print('Sorry, no results by searching criteria.')
                     case 8:
                         # Quit
                         exit_out = True
@@ -215,13 +134,18 @@ class Console:
 
         return isbn_nr, title_tx, author_tx, year_nr
 
-    # @book_state could be published, available and borrowed
+    # @book_state could be published, library, available and borrowed
     def list_books(self, books, book_state):
         if not len(books):
             print(f'There are no {book_state} books...')
         else:
             nr = 1
-            if book_state == 'published':
+            if book_state == 'library':
+                print(f"------ All library's books ------")
+                for book in books:
+                    print(f'{nr}. {book.to_string()}')
+                    nr += 1
+            elif book_state == 'published':
                 print('------ List of published books to buy ------')
                 for book in books:
                     print(f'{nr}. {book.to_string()}')
@@ -241,10 +165,6 @@ class Console:
                 for book in books:
                     print(f'{nr}. {book.to_string()}')
                     nr += 1
-
-
-    def print(self, text):
-        print(text)
 
 
     # type can be (buy, borrow and return)
@@ -272,9 +192,10 @@ if __name__ == '__main__':
     library = Library()
 
     # load default books
-    distributor.create_book(100, 'title1', 'author1', 2010)
+    distributor.create_book(100, 'title0', 'author0', 2010)
     distributor.create_book(101, 'title1', 'author1', 2002)
-    distributor.create_book(102, 'title1', 'author1', 2020)
-    distributor.create_book(103, 'title4', 'author4', 2004)
+    distributor.create_book(102, 'title2', 'author2', 2020)
+    distributor.create_book(103, 'title3', 'author3', 2004)
+    distributor.create_book(104, 'title4', 'author4', 2004)
 
     console.print_menu()
