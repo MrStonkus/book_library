@@ -1,28 +1,29 @@
 import copy
 from book import *
+from distributor import *
 
-# distributor class
-# Distributor has new publicised books available for library
-class Distributor:
-    def __init__(self):
-        self.books = []
-
-    def create_book(self, isbn_nr, title_tx, author_tx, year_int):
-        new_book = Book(isbn_nr, title_tx, author_tx, year_int)
-
-        # Chek for dublicates
-        # get all isbn numbers in list
-        isbn_list = []
-        for book in self.books:
-            isbn_list.append(book.isbn)
-        # check list for the same isbn
-        if new_book.isbn in isbn_list:
-            print("The same ISBN number is in the list!")
-        else:
-            self.books.append(new_book)
-
-    def list_books(self):
-        console.list_books(self.books, "published")
+# # distributor class
+# # Distributor has new publicised books available for library
+# class Distributor:
+#     def __init__(self):
+#         self.books = []
+#
+#     def create_book(self, isbn_nr, title_tx, author_tx, year_int):
+#         new_book = Book(isbn_nr, title_tx, author_tx, year_int)
+#
+#         # Chek for dublicates
+#         # get all isbn numbers in list
+#         isbn_list = []
+#         for book in self.books:
+#             isbn_list.append(book.isbn)
+#         # check list for the same isbn
+#         if new_book.isbn in isbn_list:
+#             print("The same ISBN number is in the list!")
+#         else:
+#             self.books.append(new_book)
+#
+#     def list_books(self):
+#         console.list_books(self.books, "published")
 
 
 # library class
@@ -131,10 +132,15 @@ class Console:
                     case 1:
                         # Create new book(publish)
                         isbn, title, author, year = self.get_new_book_inputs()
-                        distributor.create_book(isbn, title, author, year)
+                        new_book = distributor.create_book(isbn, title, author, year)
+                        if new_book:
+                            print(f'Success, new book -> {new_book.to_string()} was created.')
+                        else:
+                            print("Book was not created, check ISBN number!")
                     case 2:
                         # List published books
-                        distributor.list_books()
+                        books = distributor.get_books()
+                        self.list_books(books, "published")
                     case 3:
                         # Buy book
                         library.buy_book()
