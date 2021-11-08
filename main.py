@@ -4,7 +4,7 @@ from library import *
 
 # console class (main)
 class Console:
-    def print_menu(self):
+    def show_menu(self):
 
         exit_out = False
         while not exit_out:
@@ -216,4 +216,4 @@ if __name__ == '__main__':
     distributor.create_book(103, 'title3', 'author3', 2004)
     distributor.create_book(104, 'title4', 'author4', 2004)
 
-    console.print_menu()
+    console.show_menu()
