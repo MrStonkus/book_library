@@ -10,12 +10,12 @@ class Distributor:
     def create_book(self, isbn_nr, title_tx, author_tx, year_int):
         new_book = Book(isbn_nr, title_tx, author_tx, year_int)
 
-        # Chek for duplicates
-        # get all isbn numbers in list
+        # Chek for ISBN number duplicates
+        # get all existing ISBN numbers in list
         isbn_list = []
         for book in self.books:
             isbn_list.append(book.isbn)
-        # check list for the same isbn
+        # check list for the same ISBN
         if new_book.isbn in isbn_list:
             return False
         else:

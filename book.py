@@ -1,5 +1,5 @@
 # book class
-# ISBN contains simple digits without dashes
+# ISBN contains simple digits without dashes. All must be unique
 # @state could be published, available and borrowed
 class Book:
     def __init__(self, isbn_nr, title_tx, author_tx, year_int, state_tx='published'):

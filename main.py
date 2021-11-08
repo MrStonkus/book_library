@@ -1,85 +1,6 @@
-import copy
 from distributor import *
+from library import *
 
-
-# library class
-class Library:
-    def __init__(self):
-        self.available_books = []
-        self.borrowed_books = []
-
-    def buy_book(self):
-        console.list_books(distributor.books, 'published')
-        book_nr = console.get_customer_input('buy')
-        if book_nr <= 0 or book_nr > len(distributor.books):
-            text = f'Incorrect number. It must be from 1 to {len(distributor.books)} !'
-            console.print(text)
-        else:
-            # get original book from distributor
-            original_book = distributor.books[book_nr -1]
-            # make copy
-            book_copy = copy.deepcopy(original_book)
-            book_copy.state = 'available'
-            self.available_books.append(book_copy)
-
-            text = f'Bought book {book_copy.to_string()}'
-            console.print(text)
-
-    def list_books(self):
-        self.available_books = self.sort_by_date(self.available_books)
-        self.borrowed_books = self.sort_by_date(self.borrowed_books)
-        console.list_books(self.available_books, "available")
-        console.list_books(self.borrowed_books, "borrowed")
-
-    def borrow_book(self):
-        self.available_books = self.sort_by_date(self.available_books)
-        console.list_books(self.available_books, 'available')
-        book_nr = console.get_customer_input('borrow')
-        if book_nr <= 0 or book_nr > len(library.available_books):
-            text = f'Incorrect number. It must be from 1 to {len(library.available_books)} !'
-            console.print(text)
-        else:
-            # get book by number and remove from available_books array
-            borrowed_book = library.available_books.pop(book_nr - 1)
-            borrowed_book.state = 'borrowed'
-            # set book to borrowed array
-            self.borrowed_books.append(borrowed_book)
-
-            text = f'The book {borrowed_book.to_string()} has been borrowed'
-            console.print(text)
-
-    def return_book(self):
-        console.list_books(library.borrowed_books, 'borrowed')
-        book_nr = console.get_customer_input('return')
-        if book_nr <= 0 or book_nr > len(library.borrowed_books):
-            text = f'Incorrect number. It must be from 1 to {len(library.borrowed_books)} !'
-            console.print(text)
-        else:
-            # get book by number and remove from borrowed_books array
-            returning_book = library.borrowed_books.pop(book_nr - 1)
-            returning_book.state = 'available'
-            # set book to available_books array
-            self.available_books.append(returning_book)
-
-            text = f'The book {returning_book.to_string()} has been returned to library'
-            console.print(text)
-
-    def search_book(self):
-        search_input = console.get_customer_input('search')
-        # search will be from two arrays, from available and borrowed books
-        library_books = library.available_books + library.borrowed_books
-        res_title = list(filter(lambda x: x.title == search_input, library_books))
-        res_author = list(filter(lambda x: x.author == search_input, library_books))
-        results_arr = res_title + res_author
-        sorted_arr = self.sort_by_date(results_arr)
-        if sorted_arr:
-            console.list_books(sorted_arr, 'search_results')
-        else:
-            text = 'Sorry, no results by searching criteria.'
-            console.print(text)
-    # sort by book date
-    def sort_by_date(self, books):
-        return sorted(books, key=lambda book_copy: book_copy.year)
 
 # console class (main)
 class Console:
@@ -117,21 +38,52 @@ class Console:
                         # List published books
                         books = distributor.get_books()
                         self.list_books(books, "published")
+                        # TODO make function for all
                     case 3:
                         # Buy book
-                        library.buy_book()
+                        books = distributor.get_books()
+                        self.list_books(books, "published")
+                        book_nr = self.get_customer_input('buy')
+                        if book_nr <= 0 or book_nr > len(distributor.books):
+                            text = f'Incorrect number. It must be from 1 to {len(distributor.books)} !'
+                            console.print(text)
+                        else:
+                            # get original book from distributor
+                            original_book = distributor.books[book_nr - 1]
+                            book_copy = library.buy_book(original_book)
+                            print(f'Success, purchased book -> {book_copy.to_string()}')
                     case 4:
                         # List all library's books
-                        library.list_books()
+                        books = library.get_all_books()
+                        self.list_books(books, "library")
                     case 5:
                         # Borrow book
-                        library.borrow_book()
+                        available_books = library.get_available_books()
+                        self.list_books(available_books, "available")
+                        book_nr = self.get_customer_input('borrow')
+                        if book_nr <= 0 or book_nr > len(available_books):
+                            print(f'Incorrect number. It must be from 1 to {len(available_books)} !')
+                        else:
+                            borrowed_book = library.borrow_book(book_nr, available_books)
+                            print(f'Success, borrowed book -> {borrowed_book.to_string()}')
                     case 6:
                         # Return book
-                        library.return_book()
+                        borrowed_books = library.get_borrowed_books()
+                        self.list_books(borrowed_books, "borrowed")
+                        book_nr = self.get_customer_input('return')
+                        if book_nr <= 0 or book_nr > len(borrowed_books):
+                            print(f'Incorrect number. It must be from 1 to {len(borrowed_books)} !')
+                        else:
+                            returned_book = library.return_book(book_nr, borrowed_books)
+                            print(f'Success, returned book -> {returned_book.to_string()}')
                     case 7:
                         # Search book
-                        library.search_book()
+                        search_text = self.get_customer_input('search')
+                        results = library.search_book(search_text)
+                        if results:
+                            self.list_books(results, 'search_results')
+                        else:
+                            print('Sorry, no results by searching criteria.')
                     case 8:
                         # Quit
                         exit_out = True
@@ -183,13 +135,18 @@ class Console:
 
         return isbn_nr, title_tx, author_tx, year_nr
 
-    # @book_state could be published, available and borrowed
+    # @book_state could be published, library, available and borrowed
     def list_books(self, books, book_state):
         if not len(books):
             print(f'There are no {book_state} books...')
         else:
             nr = 1
-            if book_state == 'published':
+            if book_state == 'library':
+                print(f"------ All library's books ------")
+                for book in books:
+                    print(f'{nr}. {book.to_string()}')
+                    nr += 1
+            elif book_state == 'published':
                 print('------ List of published books to buy ------')
                 for book in books:
                     print(f'{nr}. {book.to_string()}')
