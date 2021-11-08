@@ -12,9 +12,9 @@ class Console:
                 ------ LIBRARY MENU ------
 
                 1. Create new book (publish)
-                2. List published books
-                3. Buy book
-                4. List all library's books
+                2. Distributor's books (published)
+                3. Buy book from distributor
+                4. All library's books (available and borrowed)
                 5. Borrow book
                 6. Return book
                 7. Search book
@@ -38,7 +38,6 @@ class Console:
                         # List published books
                         books = distributor.get_books()
                         self.list_books(books, "published")
-                        # TODO make function for all
                     case 3:
                         # Buy book
                         books = distributor.get_books()
@@ -168,10 +167,6 @@ class Console:
                     nr += 1
 
 
-    def print(self, text):
-        print(text)
-
-
     # type can be (buy, borrow and return)
     def get_customer_input(self, type):
         if type == 'search':
@@ -197,9 +192,10 @@ if __name__ == '__main__':
     library = Library()
 
     # load default books
-    distributor.create_book(100, 'title1', 'author1', 2010)
+    distributor.create_book(100, 'title0', 'author0', 2010)
     distributor.create_book(101, 'title1', 'author1', 2002)
-    distributor.create_book(102, 'title1', 'author1', 2020)
-    distributor.create_book(103, 'title4', 'author4', 2004)
+    distributor.create_book(102, 'title2', 'author2', 2020)
+    distributor.create_book(103, 'title3', 'author3', 2004)
+    distributor.create_book(104, 'title4', 'author4', 2004)
 
     console.print_menu()

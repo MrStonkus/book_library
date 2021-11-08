@@ -20,7 +20,12 @@ class Distributor:
             return False
         else:
             self.books.append(new_book)
+            self.books = self.sort_by_date(self.books)
             return new_book
 
     def get_books(self):
         return self.books
+
+    # sort by book date
+    def sort_by_date(self, books):
+        return sorted(books, key=lambda book: book.year)
