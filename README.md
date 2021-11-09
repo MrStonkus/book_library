@@ -12,3 +12,6 @@ How to run:
 install python >= v3.10 
 
 in terminal app directory run command>>>  python main.py
+
+How to run tests:
+in terminal app directory run command>>> python -m unittest discover -s tests

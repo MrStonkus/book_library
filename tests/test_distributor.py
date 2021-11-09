@@ -1,9 +1,10 @@
-from unittest import TestCase
+import unittest
+
 from book import *
 from distributor import *
 
 
-class TestDistributor(TestCase):
+class TestDistributor(unittest.TestCase):
     def setUp(self):
         self.distributor = Distributor()
 
@@ -11,11 +12,12 @@ class TestDistributor(TestCase):
         new_object = self.distributor.create_book(66, 'Title', 'Author', 2006)
         self.assertEqual('ISBN:66 title:Title author:Author year:2006 state:published', new_object.to_string())
 
+
     def test_create_book_duplicate(self):
         self.distributor.create_book(66, 'Title', 'Author', 2006)
         duplicate = self.distributor.create_book(66, 'Title', 'Author', 2006)
-        # self.assertEqual(duplicate, False)
         self.assertEqual(False, duplicate)
+
 
     def test_get_books(self):
         self.distributor.create_book(66, 'Title', 'Author', 2006)
@@ -33,4 +35,9 @@ class TestDistributor(TestCase):
             is_sorted = True
         else:
             is_sorted = False
-        self.assertEqual(True, is_sorted)
+        self.assertTrue(is_sorted)
+
+
+if __name__ == '__main__':
+    unittest.main()
+
